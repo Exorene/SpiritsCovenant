@@ -44,7 +44,7 @@ public class GameController : MonoBehaviour
 
         public void BtnAttack()
         {
-            Attack(enemy, 10);
+            Attack(enemy, 2);
         }
 
         public void BtnHeal()
@@ -79,11 +79,11 @@ public class GameController : MonoBehaviour
 
             if (random == 1)
             {
-                Attack(player, 12);
+                Attack(player, 7);
             }
             else
             {
-                Heal(enemy, 4);
+                Heal(enemy, 1);
             }
         }
     }
