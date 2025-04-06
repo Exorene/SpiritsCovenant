@@ -15,7 +15,7 @@ public class GameController : MonoBehaviour
 
         private bool isPlayerTurn = true;
 
-        private void Attack(gameObject target, float damage)
+        private void Attack(GameObject target, float damage)
         {
             if (target == enemy)
             {
@@ -72,7 +72,7 @@ public class GameController : MonoBehaviour
 
         private IEnumerator EnemyTurn()
         {
-            yield return new WaitForSeconds(3);
+            yield return new WaitForSeconds(3/2);
 
             int random = 0;
             random = Random.Range(1, 3);
