@@ -12,8 +12,21 @@ public class GameController : MonoBehaviour
         [SerializeField] private Slider enemyHealth = null;
         [SerializeField] private Button attackBtn = null;
         [SerializeField] private Button healBtn = null;
+        [SerializeField] GameManager_Battle manager;
 
         private bool isPlayerTurn = true;
+
+        void Update()
+        {
+            if (playerHealth.value == 0)
+            {
+                manager.LoseScene();
+            }
+            if (enemyHealth.value == 0)
+            {
+                manager.MapScene();
+            }
+        }
 
         private void Attack(GameObject target, float damage)
         {
