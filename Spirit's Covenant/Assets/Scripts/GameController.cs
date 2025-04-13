@@ -2,18 +2,28 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace LP.TurnBasedStrategyTutorial
+namespace SpiritsCovenant
 {
-public class GameController : MonoBehaviour
+    public class GameController : MonoBehaviour
     {
         Animator anim;
         [SerializeField] private GameObject player = null;
         [SerializeField] private GameObject enemy = null;
         [SerializeField] private Slider playerHealth = null;
         [SerializeField] private Slider enemyHealth = null;
-        [SerializeField] private Button attackBtn = null;
-        [SerializeField] private Button healBtn = null;
         [SerializeField] GameManager_Battle manager;
+        [System.Serializable]
+        public class Skills
+        {
+            public string name;
+            public float damage;
+            public int cooldown;
+            [HideInInspector] public int currentCooldown;
+        }
+        
+        [SerializeField] private Skills[] currentSkills = new Skills[4];
+        [SerializeField] private GameObject skillButtonPrefab;
+        [SerializeField] private Transform skillsPanel;
 
         private bool isPlayerTurn = true;
 
@@ -21,17 +31,61 @@ public class GameController : MonoBehaviour
         {
             anim = GetComponent<Animator>();
             anim.SetBool("Collected", false);
+            
+            currentSkills[0] = new Skills {
+                name = "Spirit Pulse",
+                damage = 2,
+                cooldown = 0
+            };
+            
+            CreateSkillButtons();
         }
 
-        void Update()
+        void CreateSkillButtons()
         {
-            if (playerHealth.value == 0)
+            foreach(Transform child in skillsPanel)
             {
-                manager.LoseScene();
+                Destroy(child.gameObject);
             }
-            if (enemyHealth.value == 0)
+            
+            for(int i = 0; i < currentSkills.Length; i++)
             {
-                manager.MapScene();
+                if(currentSkills[i] == null) continue;
+                
+                GameObject btn = Instantiate(skillButtonPrefab, skillsPanel);
+                btn.GetComponentInChildren<Text>().text = currentSkills[i].name;
+                int index = i;
+                btn.GetComponent<Button>().onClick.AddListener(() => UseSkill(index));
+            }
+        }
+
+        void UseSkill(int skillIndex)
+        {
+            Skills skill = currentSkills[skillIndex];
+            if(skill.currentCooldown > 0) return;
+            
+            enemyHealth.value -= skill.damage;
+            skill.currentCooldown = skill.cooldown;
+            ChangeTurn();
+        }
+
+        private void ChangeTurn()
+        {
+            isPlayerTurn = !isPlayerTurn;
+            skillsPanel.gameObject.SetActive(isPlayerTurn);
+
+            if (!isPlayerTurn)
+            {
+                StartCoroutine(EnemyTurn());
+            }
+            else
+            {
+                foreach(Skills skill in currentSkills)
+                {
+                    if(skill != null && skill.currentCooldown > 0)
+                        skill.currentCooldown--;
+                }
+                CreateSkillButtons();
             }
         }
 
@@ -48,63 +102,11 @@ public class GameController : MonoBehaviour
 
             ChangeTurn();
         }
-        private void Heal (GameObject target, float amount)
-        {
-            if (target == enemy)
-            {
-                enemyHealth.value += amount;
-            }
-            else
-            {
-                playerHealth.value += amount;
-            }
-
-            ChangeTurn();
-        }
-
-        public void BtnAttack()
-        {
-            Attack(enemy, 2);
-        }
-
-        public void BtnHeal()
-        {
-            Heal(player, 5);
-        }
-
-        private void ChangeTurn()
-        {
-            isPlayerTurn = !isPlayerTurn;
-
-            if (!isPlayerTurn)
-            {
-                attackBtn.interactable = false;
-                healBtn.interactable = false;
-
-                StartCoroutine(EnemyTurn());
-            }
-            else
-            {
-                attackBtn.interactable = true;
-                healBtn.interactable = true;
-            }
-        }
 
         private IEnumerator EnemyTurn()
         {
-            yield return new WaitForSeconds(3/2);
-
-            int random = 0;
-            random = Random.Range(1, 3);
-
-            if (random == 1)
-            {
-                Attack(player, 7);
-            }
-            else
-            {
-                Heal(enemy, 1);
-            }
+            yield return new WaitForSeconds(1.5f);
+            Attack(player, 7);
         }
     }
 }
