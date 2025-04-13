@@ -6,6 +6,7 @@ namespace LP.TurnBasedStrategyTutorial
 {
 public class GameController : MonoBehaviour
     {
+        Animator anim;
         [SerializeField] private GameObject player = null;
         [SerializeField] private GameObject enemy = null;
         [SerializeField] private Slider playerHealth = null;
@@ -15,6 +16,12 @@ public class GameController : MonoBehaviour
         [SerializeField] GameManager_Battle manager;
 
         private bool isPlayerTurn = true;
+
+        void Start()
+        {
+            anim = GetComponent<Animator>();
+            anim.SetBool("Collected", false);
+        }
 
         void Update()
         {
