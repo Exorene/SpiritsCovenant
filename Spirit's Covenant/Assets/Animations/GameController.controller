@@ -36,7 +36,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: isPlayerTurn
+    m_ConditionEvent: PlayerTurn
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -1723221989378475347}
@@ -88,7 +88,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 2
-    m_ConditionEvent: isPlayerTurn
+    m_ConditionEvent: PlayerTurn
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -4620701496831545845}
@@ -113,7 +113,7 @@ AnimatorController:
   m_Name: GameController
   serializedVersion: 5
   m_AnimatorParameters:
-  - m_Name: isPlayerTurn
+  - m_Name: PlayerTurn
     m_Type: 4
     m_DefaultFloat: 0
     m_DefaultInt: 0
@@ -149,10 +149,10 @@ AnimatorStateMachine:
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: 3509186699596010835}
-    m_Position: {x: 490, y: 110, z: 0}
+    m_Position: {x: 540, y: 110, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -4620701496831545845}
-    m_Position: {x: 350, y: -30, z: 0}
+    m_Position: {x: 390, y: -30, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -1723221989378475347}
     m_Position: {x: 250, y: 110, z: 0}
@@ -202,7 +202,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: isPlayerTurn
+    m_ConditionEvent: PlayerTurn
     m_EventTreshold: 0
   - m_ConditionMode: 1
     m_ConditionEvent: attackButton

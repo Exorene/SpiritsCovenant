@@ -13,6 +13,7 @@ namespace SpiritsCovenant
         [SerializeField] private GameManager_Battle manager;
         [SerializeField] private Button attackButton;
         [SerializeField] Animator anim;
+        [SerializeField] private string attackTrigger = "attackButton";
         
         [System.Serializable]
         public class Skills
@@ -25,9 +26,11 @@ namespace SpiritsCovenant
         
         private Skills currentSkill = new Skills();
         private bool isPlayerTurn = true;
+        
 
         void Start()
         {
+            anim.SetBool("PlayerTurn", true);
             attackButton.onClick.AddListener(UseSkill);
             attackButton.gameObject.SetActive(false);
         }
@@ -43,6 +46,7 @@ namespace SpiritsCovenant
 
         void UseSkill()
         {
+            anim.SetTrigger(attackTrigger);
             if(currentSkill.currentCooldown > 0) return;
             
             enemyHealth.value -= currentSkill.damage;
@@ -52,6 +56,7 @@ namespace SpiritsCovenant
 
         IEnumerator EnemyTurn()
         {
+            anim.SetBool("PlayerTurn", false);
             isPlayerTurn = false;
             playerHealth.value -= 5;
 
