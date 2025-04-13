@@ -6,107 +6,59 @@ namespace SpiritsCovenant
 {
     public class GameController : MonoBehaviour
     {
-        Animator anim;
-        [SerializeField] private GameObject player = null;
-        [SerializeField] private GameObject enemy = null;
-        [SerializeField] private Slider playerHealth = null;
-        [SerializeField] private Slider enemyHealth = null;
-        [SerializeField] GameManager_Battle manager;
+        [SerializeField] private GameObject player;
+        [SerializeField] private GameObject enemy;
+        [SerializeField] private Slider playerHealth;
+        [SerializeField] private Slider enemyHealth;
+        [SerializeField] private GameManager_Battle manager;
+        [SerializeField] private Button attackButton;
+        
         [System.Serializable]
         public class Skills
         {
-            public string name;
-            public float damage;
-            public int cooldown;
-            [HideInInspector] public int currentCooldown;
+            public string name = "Spirit Pulse";
+            public float damage = 2;
+            public int cooldown = 0;
+            [HideInInspector] public int currentCooldown = 0;
         }
         
-        [SerializeField] private Skills[] currentSkills = new Skills[4];
-        [SerializeField] private GameObject skillButtonPrefab;
-        [SerializeField] private Transform skillsPanel;
-
+        private Skills currentSkill = new Skills();
         private bool isPlayerTurn = true;
 
         void Start()
         {
-            anim = GetComponent<Animator>();
-            anim.SetBool("Collected", false);
+            attackButton.onClick.AddListener(UseSkill);
+            attackButton.gameObject.SetActive(false);
+        }
+
+        void Update()
+        {
+            if (playerHealth.value <= 0) manager.LoseScene();
+            if (enemyHealth.value <= 0) manager.MapScene();
             
-            currentSkills[0] = new Skills {
-                name = "Spirit Pulse",
-                damage = 2,
-                cooldown = 0
-            };
+            attackButton.gameObject.SetActive(isPlayerTurn);
+            attackButton.interactable = currentSkill.currentCooldown <= 0;
+        }
+
+        void UseSkill()
+        {
+            if(currentSkill.currentCooldown > 0) return;
             
-            CreateSkillButtons();
+            enemyHealth.value -= currentSkill.damage;
+            currentSkill.currentCooldown = currentSkill.cooldown;
+            StartCoroutine(EnemyTurn());
         }
 
-        void CreateSkillButtons()
+        IEnumerator EnemyTurn()
         {
-            foreach(Transform child in skillsPanel)
-            {
-                Destroy(child.gameObject);
-            }
-            
-            for(int i = 0; i < currentSkills.Length; i++)
-            {
-                if(currentSkills[i] == null) continue;
-                
-                GameObject btn = Instantiate(skillButtonPrefab, skillsPanel);
-                btn.GetComponentInChildren<Text>().text = currentSkills[i].name;
-                int index = i;
-                btn.GetComponent<Button>().onClick.AddListener(() => UseSkill(index));
-            }
-        }
-
-        void UseSkill(int skillIndex)
-        {
-            Skills skill = currentSkills[skillIndex];
-            if(skill.currentCooldown > 0) return;
-            
-            enemyHealth.value -= skill.damage;
-            skill.currentCooldown = skill.cooldown;
-            ChangeTurn();
-        }
-
-        private void ChangeTurn()
-        {
-            isPlayerTurn = !isPlayerTurn;
-            skillsPanel.gameObject.SetActive(isPlayerTurn);
-
-            if (!isPlayerTurn)
-            {
-                StartCoroutine(EnemyTurn());
-            }
-            else
-            {
-                foreach(Skills skill in currentSkills)
-                {
-                    if(skill != null && skill.currentCooldown > 0)
-                        skill.currentCooldown--;
-                }
-                CreateSkillButtons();
-            }
-        }
-
-        private void Attack(GameObject target, float damage)
-        {
-            if (target == enemy)
-            {
-                enemyHealth.value -= damage;
-            }
-            else
-            {
-                playerHealth.value -= damage;
-            }
-
-            ChangeTurn();
-        }
-
-        private IEnumerator EnemyTurn()
-        {
+            isPlayerTurn = false;
             yield return new WaitForSeconds(1.5f);
-            Attack(player, 7);
+            playerHealth.value -= 7;
+            
+            if(currentSkill.currentCooldown > 0)
+                currentSkill.currentCooldown--;
+            
+            isPlayerTurn = true;
         }
     }
 }
