@@ -12,6 +12,7 @@ namespace SpiritsCovenant
         [SerializeField] private Slider enemyHealth;
         [SerializeField] private GameManager_Battle manager;
         [SerializeField] private Button attackButton;
+        [SerializeField] Animator anim;
         
         [System.Serializable]
         public class Skills
@@ -52,9 +53,10 @@ namespace SpiritsCovenant
         IEnumerator EnemyTurn()
         {
             isPlayerTurn = false;
+            playerHealth.value -= 5;
+
             yield return new WaitForSeconds(1.5f);
-            playerHealth.value -= 7;
-            
+
             if(currentSkill.currentCooldown > 0)
                 currentSkill.currentCooldown--;
             
