@@ -38,7 +38,7 @@ namespace SpiritsCovenant
         [SerializeField] private Button[] replaceButtons;  // assign exactly 4 buttons in Inspector
         [SerializeField] private TextMeshProUGUI[] replaceButtonTexts; // assign corresponding TMP texts
 
-        [Header("Skill Buttons in Skills Panel")]
+        [Header("UI - Skill Buttons")]
         [SerializeField] private Button skillButton1;
         [SerializeField] private Button skillButton2;
         [SerializeField] private Button skillButton3;
@@ -47,7 +47,7 @@ namespace SpiritsCovenant
         private bool isPlayerTurn = true;
         private Animator anim;
         private bool rewardDisplayed = false;
-        // The reward selected by clicking one of the reward buttons.
+        private bool enemyStunned = false;
         private Skill currentReward = null;
 
         [System.Serializable]
@@ -134,6 +134,22 @@ namespace SpiritsCovenant
                 float healAmount = playerMaxHealth * (skill.damage / 100f);
                 playerHealth.value = Mathf.Min(playerHealth.value + healAmount, playerMaxHealth);
             }
+            else if (skill.skillName == "Lightning Strike")
+            {
+                //Stun chance of lightning strike
+                float percentDamage = skill.damage;
+                enemyHealth.value -= enemyHealth.maxValue * (percentDamage / 100f);
+                float stunChance = 0f;
+                if (Mathf.Approximately(skill.damage, 3f) || Mathf.Approximately(skill.damage, 5f))
+                    stunChance = 20f;
+                else if (Mathf.Approximately(skill.damage, 7f) || Mathf.Approximately(skill.damage, 9f))
+                    stunChance = 30f;
+                else if (Mathf.Approximately(skill.damage, 12f))
+                    stunChance = 50f;
+                float roll = Random.Range(0f, 100f);
+                if (roll < stunChance)
+                    enemyStunned = true;
+            }
             else
             {
                 enemyHealth.value -= skill.damage;
@@ -150,9 +166,13 @@ namespace SpiritsCovenant
             anim.SetBool("isPlayerTurn", false);
             yield return new WaitForSeconds(0.5f);
 
-            // Scale enemy damage based on level.
-            float scaledEnemyDamage = enemyAttackDamage * Mathf.Pow(enemyScalingFactor, GameData.currentLevel - 1);
-            playerHealth.value -= scaledEnemyDamage;
+            if (enemyHealth.value > 0 && !enemyStunned)
+            {
+                //if enemy stunned, deal 0 damage
+                float scaledEnemyDamage = enemyAttackDamage * Mathf.Pow(enemyScalingFactor, GameData.currentLevel - 1);
+                playerHealth.value -= scaledEnemyDamage;
+            }
+            enemyStunned = false;
 
             foreach (var s in unlockedSkills)
             {
@@ -182,6 +202,7 @@ namespace SpiritsCovenant
                     if (btnText != null)
                         btnText.text = unlockedSkills[i].skillName;
                     buttons[i].interactable = IsSkillAvailable(i);
+                    buttons[i].image.color = GetRarityColor(unlockedSkills[i]);
                 }
                 else
                 {
@@ -207,7 +228,6 @@ namespace SpiritsCovenant
             Skill reward2 = GenerateRandomReward();
             Skill reward3 = GenerateRandomReward();
 
-            // Remove any existing listeners.
             rewardButton1.onClick.RemoveAllListeners();
             rewardButton2.onClick.RemoveAllListeners();
             rewardButton3.onClick.RemoveAllListeners();
@@ -215,14 +235,20 @@ namespace SpiritsCovenant
             rewardText1.text = $"{reward1.skillName} ({GetRarityString(reward1)})\n{reward1.description}";
             rewardText2.text = $"{reward2.skillName} ({GetRarityString(reward2)})\n{reward2.description}";
             rewardText3.text = $"{reward3.skillName} ({GetRarityString(reward3)})\n{reward3.description}";
+            rewardButton1.image.color = GetRarityColor(reward1);
+            rewardText1.color = Color.white;
+            rewardButton2.image.color = GetRarityColor(reward2);
+            rewardText2.color = Color.white;
+            rewardButton3.image.color = GetRarityColor(reward3);
+            rewardText3.color = Color.white;
 
-            // When a reward button is clicked, call ConfirmRewardSelection with that reward.
+            // When a reward button is clicked, call ConfirmRewardSelection
             rewardButton1.onClick.AddListener(() => ConfirmRewardSelection(reward1));
             rewardButton2.onClick.AddListener(() => ConfirmRewardSelection(reward2));
             rewardButton3.onClick.AddListener(() => ConfirmRewardSelection(reward3));
         }
 
-        // Called when a reward is chosen on the reward screen.
+        // Called when a reward is chosen
         void ConfirmRewardSelection(Skill reward)
         {
             currentReward = reward;
@@ -247,25 +273,27 @@ namespace SpiritsCovenant
             skillReplacementPanel.SetActive(true);
             for (int i = 0; i < replaceButtons.Length; i++)
             {
-                // make sure exactly 4 button
+                replaceButtons[i].gameObject.SetActive(true);
                 if (i < unlockedSkills.Count)
                 {
-                    replaceButtons[i].gameObject.SetActive(true);
-                    if (replaceButtonTexts[i] != null)
+                    if (i < replaceButtonTexts.Length && replaceButtonTexts[i] != null)
                         replaceButtonTexts[i].text = unlockedSkills[i].skillName;
                     int index = i;
-                    // Remove previous listeners then add.
                     replaceButtons[i].onClick.RemoveAllListeners();
                     replaceButtons[i].onClick.AddListener(() => ReplaceSkill(index));
+                    replaceButtons[i].interactable = true;
                 }
                 else
                 {
-                    replaceButtons[i].gameObject.SetActive(false);
+                    if (i < replaceButtonTexts.Length && replaceButtonTexts[i] != null)
+                        replaceButtonTexts[i].text = "Empty";
+                    replaceButtons[i].onClick.RemoveAllListeners();
+                    replaceButtons[i].interactable = false;
                 }
             }
         }
 
-        // Replace the skill at the given index with the current reward.
+        // Replace the skill with the one selected
         void ReplaceSkill(int index)
         {
             unlockedSkills[index] = currentReward;
@@ -308,7 +336,7 @@ namespace SpiritsCovenant
                             reward.description = "Shoots a small orb of energy. Deals 5 damage."; break;
                         case Rarity.Legendary:
                             reward.damage = 90; reward.cooldown = 3;
-                            reward.description = "Shoots a small orb of energy. Deals 90 damage."; break;
+                            reward.description = "Shoots a MASSIVE orb of conecentrated energy. Deals 90 damage."; break;
                     }
                     break;
                 case "Fireball":
@@ -356,19 +384,19 @@ namespace SpiritsCovenant
                     {
                         case Rarity.Common:
                             reward.damage = 3; reward.cooldown = 1;
-                            reward.description = "Strikes with lightning. Deals 3% damage, 5% chance to stun."; break;
+                            reward.description = "Strikes with lightning. Deals 5% damage, 20% chance to stun."; break;
                         case Rarity.Uncommon:
                             reward.damage = 5; reward.cooldown = 1;
-                            reward.description = "Strikes with lightning. Deals 5% damage, 5% chance to stun."; break;
+                            reward.description = "Strikes with lightning. Deals 10% damage, 20% chance to stun."; break;
                         case Rarity.Rare:
                             reward.damage = 7; reward.cooldown = 2;
-                            reward.description = "Strikes with lightning. Deals 7% damage, 10% chance to stun."; break;
+                            reward.description = "Strikes with lightning. Deals 15% damage, 30% chance to stun."; break;
                         case Rarity.Epic:
                             reward.damage = 9; reward.cooldown = 2;
-                            reward.description = "Strikes with lightning. Deals 9% damage, 10% chance to stun."; break;
+                            reward.description = "Strikes with lightning. Deals 20% damage, 30% chance to stun."; break;
                         case Rarity.Legendary:
                             reward.damage = 12; reward.cooldown = 3;
-                            reward.description = "Strikes with lightning. Deals 12% damage, 15% chance to stun."; break;
+                            reward.description = "Strikes with lightning. Deals 25% damage, 50% chance to stun."; break;
                     }
                     break;
             }
@@ -404,13 +432,27 @@ namespace SpiritsCovenant
             }
             else if (skill.skillName == "Lightning Strike")
             {
-                if (skill.damage == 3) return "Common";
-                if (skill.damage == 5) return "Uncommon";
-                if (skill.damage == 7) return "Rare";
-                if (skill.damage == 9) return "Epic";
-                if (skill.damage == 12) return "Legendary";
+                if (skill.damage == 5) return "Common";
+                if (skill.damage == 10) return "Uncommon";
+                if (skill.damage == 15) return "Rare";
+                if (skill.damage == 20) return "Epic";
+                if (skill.damage == 25) return "Legendary";
             }
             return "";
+        }
+
+        private Color GetRarityColor(Skill skill)
+        {
+            string rarity = GetRarityString(skill);
+            switch(rarity)
+            {
+                case "Common": return Color.white;
+                case "Uncommon": return Color.green;
+                case "Rare": return Color.blue;
+                case "Epic": return new Color(0.5f, 0f, 0.5f, 1f);
+                case "Legendary": return new Color(1f, 0.5f, 0f, 1f);
+                default: return Color.white;
+            }
         }
     }
 }
