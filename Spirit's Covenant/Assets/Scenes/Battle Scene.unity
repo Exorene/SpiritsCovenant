@@ -2269,7 +2269,7 @@ MonoBehaviour:
   enemyAttackDamage: 3
   playerMaxHealth: 100
   enemyMaxHealth: 20
-  enemyScalingFactor: 1.5
+  enemyScalingFactor: 2
   rewardScreen: {fileID: 1192636706}
   rewardButton1: {fileID: 1600226827}
   rewardButton2: {fileID: 53665502}
@@ -14459,8 +14459,8 @@ Light:
   m_Enabled: 1
   serializedVersion: 11
   m_Type: 1
-  m_Color: {r: 0.35237443, g: 0.36130503, b: 0.5320754, a: 1}
-  m_Intensity: 1
+  m_Color: {r: 0.08235294, g: 0.07450981, b: 0.16862746, a: 1}
+  m_Intensity: 5
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
