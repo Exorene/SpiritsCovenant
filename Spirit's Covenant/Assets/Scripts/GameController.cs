@@ -32,6 +32,7 @@ namespace SpiritsCovenant
         [SerializeField] private TextMeshProUGUI rewardText1;
         [SerializeField] private TextMeshProUGUI rewardText2;
         [SerializeField] private TextMeshProUGUI rewardText3;
+        [SerializeField] private Button skipRewardButton; 
 
         [Header("UI - Skill Replacement Panel")]
         [SerializeField] private GameObject skillReplacementPanel;
@@ -140,11 +141,11 @@ namespace SpiritsCovenant
                 float percentDamage = skill.damage;
                 enemyHealth.value -= enemyHealth.maxValue * (percentDamage / 100f);
                 float stunChance = 0f;
-                if (Mathf.Approximately(skill.damage, 3f) || Mathf.Approximately(skill.damage, 5f))
+                if (Mathf.Approximately(skill.damage, 5f) || Mathf.Approximately(skill.damage, 10f))
                     stunChance = 20f;
-                else if (Mathf.Approximately(skill.damage, 7f) || Mathf.Approximately(skill.damage, 9f))
+                else if (Mathf.Approximately(skill.damage, 15f) || Mathf.Approximately(skill.damage, 20f))
                     stunChance = 30f;
-                else if (Mathf.Approximately(skill.damage, 12f))
+                else if (Mathf.Approximately(skill.damage, 25f))
                     stunChance = 50f;
                 float roll = Random.Range(0f, 100f);
                 if (roll < stunChance)
@@ -231,6 +232,7 @@ namespace SpiritsCovenant
             rewardButton1.onClick.RemoveAllListeners();
             rewardButton2.onClick.RemoveAllListeners();
             rewardButton3.onClick.RemoveAllListeners();
+            skipRewardButton.onClick.RemoveAllListeners();
 
             rewardText1.text = $"{reward1.skillName} ({GetRarityString(reward1)})\n{reward1.description}";
             rewardText2.text = $"{reward2.skillName} ({GetRarityString(reward2)})\n{reward2.description}";
@@ -242,10 +244,12 @@ namespace SpiritsCovenant
             rewardButton3.image.color = GetRarityColor(reward3);
             rewardText3.color = Color.white;
 
-            // When a reward button is clicked, call ConfirmRewardSelection
             rewardButton1.onClick.AddListener(() => ConfirmRewardSelection(reward1));
             rewardButton2.onClick.AddListener(() => ConfirmRewardSelection(reward2));
             rewardButton3.onClick.AddListener(() => ConfirmRewardSelection(reward3));
+            skipRewardButton.image.color = Color.white;
+            // Optionally, set its text if it has a TextMeshPro component; otherwise, ensure it reads "Skip" via the Inspector.
+            skipRewardButton.onClick.AddListener(SkipReward);
         }
 
         // Called when a reward is chosen
@@ -278,6 +282,7 @@ namespace SpiritsCovenant
                 {
                     if (i < replaceButtonTexts.Length && replaceButtonTexts[i] != null)
                         replaceButtonTexts[i].text = unlockedSkills[i].skillName;
+                    replaceButtons[i].image.color = GetRarityColor(unlockedSkills[i]);
                     int index = i;
                     replaceButtons[i].onClick.RemoveAllListeners();
                     replaceButtons[i].onClick.AddListener(() => ReplaceSkill(index));
@@ -299,6 +304,13 @@ namespace SpiritsCovenant
             unlockedSkills[index] = currentReward;
             GameData.unlockedSkills = unlockedSkills;
             skillReplacementPanel.SetActive(false);
+            LoadMapScene();
+        }
+
+        // Called when the player opts to skip the reward.
+        void SkipReward()
+        {
+            // load the map scene without changing the unlocked skills.
             LoadMapScene();
         }
 
@@ -335,8 +347,8 @@ namespace SpiritsCovenant
                             reward.damage = 5; reward.cooldown = 0;
                             reward.description = "Shoots a small orb of energy. Deals 5 damage."; break;
                         case Rarity.Legendary:
-                            reward.damage = 90; reward.cooldown = 3;
-                            reward.description = "Shoots a MASSIVE orb of conecentrated energy. Deals 90 damage."; break;
+                            reward.damage = 50; reward.cooldown = 3;
+                            reward.description = "Shoots a massive orb of conecentrated energy. Deals 50 damage."; break;
                     }
                     break;
                 case "Fireball":
@@ -352,10 +364,10 @@ namespace SpiritsCovenant
                             reward.damage = 15; reward.cooldown = 0;
                             reward.description = "Hurls a fireball. Deals 15 damage."; break;
                         case Rarity.Epic:
-                            reward.damage = 20; reward.cooldown = 1;
+                            reward.damage = 20; reward.cooldown = 2;
                             reward.description = "Hurls a fireball. Deals 20 damage."; break;
                         case Rarity.Legendary:
-                            reward.damage = 25; reward.cooldown = 1;
+                            reward.damage = 25; reward.cooldown = 2;
                             reward.description = "Hurls a fireball. Deals 25 damage."; break;
                     }
                     break;
@@ -412,7 +424,7 @@ namespace SpiritsCovenant
                 if (skill.damage == 3) return "Uncommon";
                 if (skill.damage == 4) return "Rare";
                 if (skill.damage == 5) return "Epic";
-                if (skill.damage == 90) return "Legendary";
+                if (skill.damage == 50) return "Legendary";
             }
             else if (skill.skillName == "Fireball")
             {
