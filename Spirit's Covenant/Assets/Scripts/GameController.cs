@@ -383,19 +383,19 @@ namespace SpiritsCovenant
                     switch (rarity)
                     {
                         case Rarity.Common:
-                            reward.damage = 3; reward.cooldown = 1;
+                            reward.damage = 5; reward.cooldown = 1;
                             reward.description = "Strikes with lightning. Deals 5% damage, 20% chance to stun."; break;
                         case Rarity.Uncommon:
-                            reward.damage = 5; reward.cooldown = 1;
+                            reward.damage = 10; reward.cooldown = 1;
                             reward.description = "Strikes with lightning. Deals 10% damage, 20% chance to stun."; break;
                         case Rarity.Rare:
-                            reward.damage = 7; reward.cooldown = 2;
+                            reward.damage = 15; reward.cooldown = 2;
                             reward.description = "Strikes with lightning. Deals 15% damage, 30% chance to stun."; break;
                         case Rarity.Epic:
-                            reward.damage = 9; reward.cooldown = 2;
+                            reward.damage = 20; reward.cooldown = 2;
                             reward.description = "Strikes with lightning. Deals 20% damage, 30% chance to stun."; break;
                         case Rarity.Legendary:
-                            reward.damage = 12; reward.cooldown = 3;
+                            reward.damage = 25; reward.cooldown = 3;
                             reward.description = "Strikes with lightning. Deals 25% damage, 50% chance to stun."; break;
                     }
                     break;
@@ -446,7 +446,7 @@ namespace SpiritsCovenant
             string rarity = GetRarityString(skill);
             switch(rarity)
             {
-                case "Common": return Color.white;
+                case "Common": return Color.gray;
                 case "Uncommon": return Color.green;
                 case "Rare": return Color.blue;
                 case "Epic": return new Color(0.5f, 0f, 0.5f, 1f);
