@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using SpiritsCovenant; // So we can access GameData
+using SpiritsCovenant;
 
 public class MapLevelButton : MonoBehaviour
 {
@@ -13,14 +13,15 @@ public class MapLevelButton : MonoBehaviour
     {
         btn = GetComponent<Button>();
         if (btn != null)
+        {
+            btn.interactable = levelNumber <= GameData.currentLevel;
             btn.onClick.AddListener(OnClickLevel);
+        }
     }
 
     void OnClickLevel()
     {
-        // Set currentLevel in GameData.
         GameData.currentLevel = levelNumber;
-        // Load the battle scene.
         if (manager != null)
             manager.BattleScene();
         else

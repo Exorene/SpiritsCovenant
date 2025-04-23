@@ -1,7 +1,7 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine.SceneManagement;
 
@@ -9,20 +9,47 @@ namespace SpiritsCovenant
 {
     public enum Rarity { Common, Uncommon, Rare, Epic, Legendary }
 
+    [System.Serializable]
+    public struct RarityWeight
+    {
+        public int common;
+        public int uncommon;
+        public int rare;
+        public int epic;
+        public int legendary;
+    }
+
     public class GameController : MonoBehaviour
     {
         [Header("References")]
         [SerializeField] private GameObject player;
         [SerializeField] private GameObject enemy;
+        [SerializeField] private GameObject bossEnemyPrefab;
         [SerializeField] private Slider playerHealth;
         [SerializeField] private Slider enemyHealth;
-        [SerializeField] private GameManager_Battle battleManager; 
+        [SerializeField] private GameManager_Battle battleManager;
 
-        [Header("Gameplay Settings")]
-        [SerializeField] private float enemyAttackDamage = 3f;
-        [SerializeField] private float playerMaxHealth = 100f;
-        [SerializeField] private float enemyMaxHealth = 100f;
-        [SerializeField] private float enemyScalingFactor = 1.2f;
+        [Header("Stats & Scaling (edit only in Inspector)")]
+        [SerializeField] private float playerMaxHealth    = 120f;
+        [SerializeField] private float enemyMaxHealth     = 12f;
+        [SerializeField] private float enemyAttackDamage  = 2f;
+        [SerializeField] private float enemyScalingFactor = 1.05f;
+
+        [Header("Drop Chances by Level")]
+        [Tooltip("one entry per level, in order")]
+        [SerializeField] private RarityWeight[] rarityChances = new RarityWeight[10]
+        {
+            new RarityWeight{ common=60, uncommon=30, rare=7,  epic=2, legendary=1 },
+            new RarityWeight{ common=55, uncommon=30, rare=8,  epic=4, legendary=3 },
+            new RarityWeight{ common=50, uncommon=28, rare=10, epic=7, legendary=5 },
+            new RarityWeight{ common=45, uncommon=25, rare=12, epic=10,legendary=8 },
+            new RarityWeight{ common=40, uncommon=25, rare=15, epic=12,legendary=8 },
+            new RarityWeight{ common=35, uncommon=25, rare=18, epic=15,legendary=7 },
+            new RarityWeight{ common=30, uncommon=25, rare=20, epic=18,legendary=7 },
+            new RarityWeight{ common=25, uncommon=25, rare=22, epic=20,legendary=8 },
+            new RarityWeight{ common=20, uncommon=25, rare=25, epic=20,legendary=10},
+            new RarityWeight{ common=15, uncommon=25, rare=25, epic=25,legendary=10}
+        };
 
         [Header("UI - Reward Screen")]
         [SerializeField] private GameObject rewardScreen;
@@ -32,12 +59,12 @@ namespace SpiritsCovenant
         [SerializeField] private TextMeshProUGUI rewardText1;
         [SerializeField] private TextMeshProUGUI rewardText2;
         [SerializeField] private TextMeshProUGUI rewardText3;
-        [SerializeField] private Button skipRewardButton; 
+        [SerializeField] private Button skipRewardButton;
 
-        [Header("UI - Skill Replacement Panel")]
+        [Header("UI - Skill Replacement")]
         [SerializeField] private GameObject skillReplacementPanel;
-        [SerializeField] private Button[] replaceButtons;  // assign exactly 4 buttons in Inspector
-        [SerializeField] private TextMeshProUGUI[] replaceButtonTexts; // assign corresponding TMP texts
+        [SerializeField] private Button[] replaceButtons;
+        [SerializeField] private TextMeshProUGUI[] replaceButtonTexts;
 
         [Header("UI - Skill Buttons")]
         [SerializeField] private Button skillButton1;
@@ -45,54 +72,65 @@ namespace SpiritsCovenant
         [SerializeField] private Button skillButton3;
         [SerializeField] private Button skillButton4;
 
-        private bool isPlayerTurn = true;
+        private float enemyDebuffPercent;
+        private int   enemyDebuffTurns;
+        private float playerBuffPercent;
+        private int   playerBuffTurns;
+
+        private bool isPlayerTurn     = true;
         private Animator anim;
-        private bool rewardDisplayed = false;
-        private bool enemyStunned = false;
-        private Skill currentReward = null;
+        private bool rewardDisplayed  = false;
+        private bool enemyStunned     = false;
+        private Skill currentReward   = null;
 
         [System.Serializable]
         public class Skill
         {
-            public string skillName;
-            public float damage;  // For Aqua Mend, treat as percentage heal (ie 5 means 5% heal)
-            public int cooldown;
+            public string   skillName;
+            public Rarity   rarity;
+            public float    damage;
+            public int      duration;
+            public int      cooldown;
             [HideInInspector] public int currentCooldown;
-            public string description;
+            public string   description;
         }
 
         [Header("All Possible Base Skills")]
         [SerializeField] private Skill[] allSkills;
-        // order: 0 - Spirit Pulse, 1 - Fireball, 2 - Aqua Mend, 3 - Lightning Strike
-        // Local copy of unlocked skills; synced w/ gamedata
         private List<Skill> unlockedSkills = new List<Skill>();
 
         void Start()
         {
+            if (GameData.currentLevel >= 10 && bossEnemyPrefab != null)
+            {
+                var boss = Instantiate(
+                    bossEnemyPrefab,
+                    enemy.transform.position,
+                    Quaternion.Euler(0f, 270f, 0f),
+                    enemy.transform.parent
+                );
+                Destroy(enemy);
+                enemy = boss;
+            }
+
             anim = GetComponent<Animator>();
 
-            // Initialize player and enemy health to full
             playerHealth.maxValue = playerMaxHealth;
-            playerHealth.value = playerMaxHealth;
-             // enemyMaxHealth is the base HP for level 1; scale based on current level
-            float scaleFactor = 1.0f + (GameData.currentLevel - 1) * 0.5f;  
-            float scaledEnemyMaxHealth = enemyMaxHealth * scaleFactor;
-            enemyHealth.maxValue = scaledEnemyMaxHealth;
-            enemyHealth.value = scaledEnemyMaxHealth;
-            float scaledEnemyAttack = enemyAttackDamage * scaleFactor;
+            playerHealth.value    = playerMaxHealth;
 
-            // If GameData already has skills, copy those skills; otherwise initialize with Spirit Pulse.
+            float scaleFactor       = Mathf.Pow(enemyScalingFactor, GameData.currentLevel - 1);
+            float scaledEnemyHealth = enemyMaxHealth * scaleFactor;
+            enemyHealth.maxValue    = scaledEnemyHealth;
+            enemyHealth.value       = scaledEnemyHealth;
+
             if (GameData.unlockedSkills.Count > 0)
-            {
                 unlockedSkills = GameData.unlockedSkills;
-            }
             else
             {
                 unlockedSkills.Add(allSkills[0]);
                 GameData.unlockedSkills = unlockedSkills;
             }
 
-            // Setup skill buttons listeners.
             skillButton1.onClick.AddListener(() => OnSkillButtonClicked(0));
             skillButton2.onClick.AddListener(() => OnSkillButtonClicked(1));
             skillButton3.onClick.AddListener(() => OnSkillButtonClicked(2));
@@ -106,58 +144,63 @@ namespace SpiritsCovenant
         void Update()
         {
             if (playerHealth.value <= 0)
-            {
                 battleManager.LoseScene();
-            }
             else if (enemyHealth.value <= 0 && !rewardDisplayed)
-            {
                 ShowRewardScreen();
-            }
+
             RefreshSkillButtons();
         }
 
-        void OnSkillButtonClicked(int skillIndex)
+        void OnSkillButtonClicked(int index)
         {
-            if (skillIndex >= 0 && skillIndex < unlockedSkills.Count)
-                UseSkill(unlockedSkills[skillIndex]);
+            if (index < unlockedSkills.Count)
+                UseSkill(unlockedSkills[index]);
         }
 
         void UseSkill(Skill skill)
         {
-            if (skill.currentCooldown > 0)
-                return;
+            if (skill.currentCooldown > 0) return;
 
             anim.SetTrigger("attackButton");
 
-            // For Aqua Mend, heal instead of damaging enemy.
-            if (skill.skillName == "Aqua Mend")
+            if (skill.skillName == "Entrap")
             {
-                float healAmount = playerMaxHealth * (skill.damage / 100f);
-                playerHealth.value = Mathf.Min(playerHealth.value + healAmount, playerMaxHealth);
+                enemyDebuffPercent = skill.damage / 100f;
+                enemyDebuffTurns   = skill.duration;
+            }
+            else if (skill.skillName == "Earth Shell")
+            {
+                playerBuffPercent = skill.damage / 100f;
+                playerBuffTurns   = skill.duration;
+            }
+            else if (skill.skillName == "Aqua Mend")
+            {
+                float heal = playerMaxHealth * (skill.damage / 100f);
+                playerHealth.value = Mathf.Min(playerHealth.value + heal, playerMaxHealth);
             }
             else if (skill.skillName == "Lightning Strike")
             {
-                //Stun chance of lightning strike
-                float percentDamage = skill.damage;
-                enemyHealth.value -= enemyHealth.maxValue * (percentDamage / 100f);
-                float stunChance = 0f;
-                if (Mathf.Approximately(skill.damage, 5f) || Mathf.Approximately(skill.damage, 10f))
-                    stunChance = 20f;
-                else if (Mathf.Approximately(skill.damage, 15f) || Mathf.Approximately(skill.damage, 20f))
-                    stunChance = 30f;
-                else if (Mathf.Approximately(skill.damage, 25f))
-                    stunChance = 50f;
-                float roll = Random.Range(0f, 100f);
-                if (roll < stunChance)
+                float raw = enemyHealth.maxValue * (skill.damage / 100f);
+                enemyHealth.value -= raw * (1f + enemyDebuffPercent);
+
+                float stunChance = skill.damage switch
+                {
+                    5f or 10f  => 20f,
+                    15f or 20f => 30f,
+                    25f        => 50f,
+                    _          => 0f
+                };
+
+                if (Random.value * 100f < stunChance)
                     enemyStunned = true;
             }
             else
             {
-                enemyHealth.value -= skill.damage;
+                float raw = skill.damage;
+                enemyHealth.value -= raw * (1f + enemyDebuffPercent);
             }
 
             skill.currentCooldown = skill.cooldown;
-            HideAllSkillButtons();
             StartCoroutine(EnemyTurn());
         }
 
@@ -165,58 +208,59 @@ namespace SpiritsCovenant
         {
             isPlayerTurn = false;
             anim.SetBool("isPlayerTurn", false);
+
             yield return new WaitForSeconds(0.5f);
 
             if (enemyHealth.value > 0 && !enemyStunned)
             {
-                //if enemy stunned, deal 0 damage
-                float scaledEnemyDamage = enemyAttackDamage * Mathf.Pow(enemyScalingFactor, GameData.currentLevel - 1);
-                playerHealth.value -= scaledEnemyDamage;
+                float raw     = enemyAttackDamage * Mathf.Pow(enemyScalingFactor, GameData.currentLevel - 1);
+                float damage  = raw * (1f - playerBuffPercent);
+                playerHealth.value -= damage;
             }
+
             enemyStunned = false;
 
+            if (enemyDebuffTurns > 0) enemyDebuffTurns--;
+            if (enemyDebuffTurns == 0) enemyDebuffPercent = 0f;
+
+            if (playerBuffTurns > 0) playerBuffTurns--;
+            if (playerBuffTurns == 0) playerBuffPercent = 0f;
+
             foreach (var s in unlockedSkills)
-            {
-                if (s.currentCooldown > 0)
-                    s.currentCooldown--;
-            }
+                if (s.currentCooldown > 0) s.currentCooldown--;
+
             isPlayerTurn = true;
             anim.SetBool("isPlayerTurn", true);
         }
 
-        bool IsSkillAvailable(int skillIndex)
-        {
-            if (skillIndex < 0 || skillIndex >= unlockedSkills.Count)
-                return false;
-            return unlockedSkills[skillIndex].currentCooldown <= 0;
-        }
-
         void RefreshSkillButtons()
         {
-            Button[] buttons = new Button[] { skillButton1, skillButton2, skillButton3, skillButton4 };
+            Button[] buttons = { skillButton1, skillButton2, skillButton3, skillButton4 };
+
             for (int i = 0; i < buttons.Length; i++)
             {
+                var button = buttons[i];
+
                 if (isPlayerTurn && i < unlockedSkills.Count)
                 {
-                    buttons[i].gameObject.SetActive(true);
-                    TextMeshProUGUI btnText = buttons[i].GetComponentInChildren<TextMeshProUGUI>();
-                    if (btnText != null)
-                        btnText.text = unlockedSkills[i].skillName;
-                    buttons[i].interactable = IsSkillAvailable(i);
-                    buttons[i].image.color = GetRarityColor(unlockedSkills[i]);
+                    button.gameObject.SetActive(true);
+
+                    var txt = button.GetComponentInChildren<TextMeshProUGUI>();
+                    if (txt)
+                    {
+                        int cd = unlockedSkills[i].currentCooldown;
+                        txt.text = unlockedSkills[i].skillName + (cd > 0 ? $" ({cd})" : "");
+                        txt.color = Color.white;
+                    }
+
+                    button.interactable = unlockedSkills[i].currentCooldown <= 0;
+                    button.image.color  = GetRarityColor(unlockedSkills[i]);
                 }
                 else
                 {
-                    buttons[i].gameObject.SetActive(false);
+                    button.gameObject.SetActive(false);
                 }
             }
-        }
-
-        void HideAllSkillButtons()
-        {
-            Button[] buttons = new Button[] { skillButton1, skillButton2, skillButton3, skillButton4 };
-            foreach (Button btn in buttons)
-                btn.gameObject.SetActive(false);
         }
 
         void ShowRewardScreen()
@@ -224,81 +268,74 @@ namespace SpiritsCovenant
             rewardScreen.SetActive(true);
             rewardDisplayed = true;
 
-            // Generate three random rewards.
-            Skill reward1 = GenerateRandomReward();
-            Skill reward2 = GenerateRandomReward();
-            Skill reward3 = GenerateRandomReward();
+            var r1 = GenerateRandomReward();
+            var r2 = GenerateRandomReward();
+            var r3 = GenerateRandomReward();
 
             rewardButton1.onClick.RemoveAllListeners();
             rewardButton2.onClick.RemoveAllListeners();
             rewardButton3.onClick.RemoveAllListeners();
             skipRewardButton.onClick.RemoveAllListeners();
 
-            rewardText1.text = $"{reward1.skillName} ({GetRarityString(reward1)})\n{reward1.description}";
-            rewardText2.text = $"{reward2.skillName} ({GetRarityString(reward2)})\n{reward2.description}";
-            rewardText3.text = $"{reward3.skillName} ({GetRarityString(reward3)})\n{reward3.description}";
-            rewardButton1.image.color = GetRarityColor(reward1);
+            rewardText1.text  = $"{r1.skillName} ({r1.rarity})\n{r1.description}";
             rewardText1.color = Color.white;
-            rewardButton2.image.color = GetRarityColor(reward2);
+
+            rewardText2.text  = $"{r2.skillName} ({r2.rarity})\n{r2.description}";
             rewardText2.color = Color.white;
-            rewardButton3.image.color = GetRarityColor(reward3);
+
+            rewardText3.text  = $"{r3.skillName} ({r3.rarity})\n{r3.description}";
             rewardText3.color = Color.white;
 
-            rewardButton1.onClick.AddListener(() => ConfirmRewardSelection(reward1));
-            rewardButton2.onClick.AddListener(() => ConfirmRewardSelection(reward2));
-            rewardButton3.onClick.AddListener(() => ConfirmRewardSelection(reward3));
-            skipRewardButton.image.color = Color.white;
-            // Optionally, set its text if it has a TextMeshPro component; otherwise, ensure it reads "Skip" via the Inspector.
+            rewardButton1.image.color = GetRarityColor(r1);
+            rewardButton2.image.color = GetRarityColor(r2);
+            rewardButton3.image.color = GetRarityColor(r3);
+
+            rewardButton1.onClick.AddListener(() => ConfirmRewardSelection(r1));
+            rewardButton2.onClick.AddListener(() => ConfirmRewardSelection(r2));
+            rewardButton3.onClick.AddListener(() => ConfirmRewardSelection(r3));
             skipRewardButton.onClick.AddListener(SkipReward);
         }
 
-        // Called when a reward is chosen
         void ConfirmRewardSelection(Skill reward)
         {
             currentReward = reward;
-            // If player has fewer than 4 skills, add without replacement.
+
             if (unlockedSkills.Count < 4)
             {
                 unlockedSkills.Add(reward);
                 GameData.unlockedSkills = unlockedSkills;
                 LoadMapScene();
             }
-            else
-            {
-                // else, show the replacement UI so the player can choose which skill to replace.
-                ShowSkillReplacementPanel();
-            }
+            else ShowSkillReplacementPanel();
         }
 
-        // Show a panel listing the four unlocked skills so the player can choose one to replace.
         void ShowSkillReplacementPanel()
         {
-            if (skillReplacementPanel == null) return;
             skillReplacementPanel.SetActive(true);
+
             for (int i = 0; i < replaceButtons.Length; i++)
             {
                 replaceButtons[i].gameObject.SetActive(true);
+
                 if (i < unlockedSkills.Count)
                 {
-                    if (i < replaceButtonTexts.Length && replaceButtonTexts[i] != null)
-                        replaceButtonTexts[i].text = unlockedSkills[i].skillName;
+                    replaceButtonTexts[i].text    = unlockedSkills[i].skillName;
                     replaceButtons[i].image.color = GetRarityColor(unlockedSkills[i]);
-                    int index = i;
+
+                    int buttonIndex = i;
                     replaceButtons[i].onClick.RemoveAllListeners();
-                    replaceButtons[i].onClick.AddListener(() => ReplaceSkill(index));
+                    replaceButtons[i].onClick.AddListener(() => ReplaceSkill(buttonIndex));
                     replaceButtons[i].interactable = true;
                 }
                 else
                 {
-                    if (i < replaceButtonTexts.Length && replaceButtonTexts[i] != null)
-                        replaceButtonTexts[i].text = "Empty";
+                    replaceButtonTexts[i].text = "Empty";
                     replaceButtons[i].onClick.RemoveAllListeners();
                     replaceButtons[i].interactable = false;
                 }
             }
         }
 
-        // Replace the skill with the one selected
         void ReplaceSkill(int index)
         {
             unlockedSkills[index] = currentReward;
@@ -307,14 +344,11 @@ namespace SpiritsCovenant
             LoadMapScene();
         }
 
-        // Called when the player opts to skip the reward.
         void SkipReward()
         {
-            // load the map scene without changing the unlocked skills.
             LoadMapScene();
         }
 
-        // Load the map scene and increment current level.
         void LoadMapScene()
         {
             GameData.currentLevel++;
@@ -323,148 +357,86 @@ namespace SpiritsCovenant
 
         Skill GenerateRandomReward()
         {
-            int skillIndex = Random.Range(0, allSkills.Length);
-            int rarityValue = Random.Range(0, 5); // 0:Common, 1:Uncommon, 2:Rare, 3:Epic, 4:Legendary
-            Rarity rarity = (Rarity)rarityValue;
-            Skill baseSkill = allSkills[skillIndex];
-            Skill reward = new Skill();
-            reward.skillName = baseSkill.skillName;
+            int levelIndex = Mathf.Clamp(GameData.currentLevel, 1, rarityChances.Length) - 1;
+            var weights = rarityChances[levelIndex];
+
+            int roll = Random.Range(1, 101);
+            int cumulativeChance = weights.common;
+            Rarity rarity = Rarity.Common;
+            if (roll <= cumulativeChance)                             { rarity = Rarity.Common; }
+            else if (roll <= (cumulativeChance += weights.uncommon))  { rarity = Rarity.Uncommon; }
+            else if (roll <= (cumulativeChance += weights.rare))      { rarity = Rarity.Rare; }
+            else if (roll <= (cumulativeChance += weights.epic))      { rarity = Rarity.Epic; }
+            else                                                      { rarity = Rarity.Legendary; }
+
+            var baseSkill = allSkills[Random.Range(0, allSkills.Length)];
+            var reward = new Skill
+            {
+                skillName       = baseSkill.skillName,
+                rarity          = rarity,
+                currentCooldown = 0
+            };
+
             switch (reward.skillName)
             {
                 case "Spirit Pulse":
-                    switch (rarity)
-                    {
-                        case Rarity.Common:
-                            reward.damage = 2; reward.cooldown = 0;
-                            reward.description = "Shoots a small orb of energy. Deals 2 damage."; break;
-                        case Rarity.Uncommon:
-                            reward.damage = 3; reward.cooldown = 0;
-                            reward.description = "Shoots a small orb of energy. Deals 3 damage."; break;
-                        case Rarity.Rare:
-                            reward.damage = 4; reward.cooldown = 0;
-                            reward.description = "Shoots a small orb of energy. Deals 4 damage."; break;
-                        case Rarity.Epic:
-                            reward.damage = 5; reward.cooldown = 0;
-                            reward.description = "Shoots a small orb of energy. Deals 5 damage."; break;
-                        case Rarity.Legendary:
-                            reward.damage = 50; reward.cooldown = 3;
-                            reward.description = "Shoots a massive orb of conecentrated energy. Deals 50 damage."; break;
-                    }
+                    if (rarity == Rarity.Common)        { reward.damage = 2;  reward.cooldown = 0; reward.duration = 0; reward.description = "Shoots a small orb of energy. Deals 2 damage."; }
+                    else if (rarity == Rarity.Uncommon){ reward.damage = 3;  reward.cooldown = 0; reward.duration = 0; reward.description = "Shoots a small orb of energy. Deals 3 damage."; }
+                    else if (rarity == Rarity.Rare)    { reward.damage = 4;  reward.cooldown = 0; reward.duration = 0; reward.description = "Shoots a small orb of energy. Deals 4 damage."; }
+                    else if (rarity == Rarity.Epic)    { reward.damage = 5;  reward.cooldown = 0; reward.duration = 0; reward.description = "Shoots a concentrated orb. Deals 5 damage."; }
+                    else                                { reward.damage = 30; reward.cooldown = 3; reward.duration = 0; reward.description = "Shoots a massive orb. Deals 30 damage."; }
                     break;
                 case "Fireball":
-                    switch (rarity)
-                    {
-                        case Rarity.Common:
-                            reward.damage = 5; reward.cooldown = 0;
-                            reward.description = "Hurls a fireball. Deals 5 damage."; break;
-                        case Rarity.Uncommon:
-                            reward.damage = 10; reward.cooldown = 0;
-                            reward.description = "Hurls a fireball. Deals 10 damage."; break;
-                        case Rarity.Rare:
-                            reward.damage = 15; reward.cooldown = 0;
-                            reward.description = "Hurls a fireball. Deals 15 damage."; break;
-                        case Rarity.Epic:
-                            reward.damage = 20; reward.cooldown = 2;
-                            reward.description = "Hurls a fireball. Deals 20 damage."; break;
-                        case Rarity.Legendary:
-                            reward.damage = 25; reward.cooldown = 2;
-                            reward.description = "Hurls a fireball. Deals 25 damage."; break;
-                    }
+                    if (rarity == Rarity.Common)        { reward.damage = 5;  reward.cooldown = 0; reward.duration = 0; reward.description = "Hurls a fireball. Deals 5 damage."; }
+                    else if (rarity == Rarity.Uncommon){ reward.damage = 10; reward.cooldown = 0; reward.duration = 0; reward.description = "Hurls a fireball. Deals 10 damage."; }
+                    else if (rarity == Rarity.Rare)    { reward.damage = 15; reward.cooldown = 0; reward.duration = 0; reward.description = "Hurls a fireball. Deals 15 damage."; }
+                    else if (rarity == Rarity.Epic)    { reward.damage = 20; reward.cooldown = 2; reward.duration = 0; reward.description = "Hurls a fireball. Deals 20 damage."; }
+                    else                                { reward.damage = 25; reward.cooldown = 2; reward.duration = 0; reward.description = "Hurls a massive fireball. Deals 25 damage."; }
                     break;
                 case "Aqua Mend":
-                    switch (rarity)
-                    {
-                        case Rarity.Common:
-                            reward.damage = 5; reward.cooldown = 0;
-                            reward.description = "Heals 5% health."; break;
-                        case Rarity.Uncommon:
-                            reward.damage = 10; reward.cooldown = 0;
-                            reward.description = "Heals 10% health."; break;
-                        case Rarity.Rare:
-                            reward.damage = 15; reward.cooldown = 1;
-                            reward.description = "Heals 15% health."; break;
-                        case Rarity.Epic:
-                            reward.damage = 20; reward.cooldown = 2;
-                            reward.description = "Heals 20% health."; break;
-                        case Rarity.Legendary:
-                            reward.damage = 25; reward.cooldown = 2;
-                            reward.description = "Heals 25% health."; break;
-                    }
+                    if (rarity == Rarity.Common)        { reward.damage = 5;  reward.cooldown = 0; reward.duration = 0; reward.description = "Heals 5% health."; }
+                    else if (rarity == Rarity.Uncommon){ reward.damage = 10; reward.cooldown = 0; reward.duration = 0; reward.description = "Heals 10% health."; }
+                    else if (rarity == Rarity.Rare)    { reward.damage = 15; reward.cooldown = 1; reward.duration = 0; reward.description = "Heals 15% health."; }
+                    else if (rarity == Rarity.Epic)    { reward.damage = 20; reward.cooldown = 2; reward.duration = 0; reward.description = "Heals 20% health."; }
+                    else                                { reward.damage = 25; reward.cooldown = 2; reward.duration = 0; reward.description = "Heals 25% health."; }
                     break;
                 case "Lightning Strike":
-                    switch (rarity)
-                    {
-                        case Rarity.Common:
-                            reward.damage = 5; reward.cooldown = 1;
-                            reward.description = "Strikes with lightning. Deals 5% damage, 20% chance to stun."; break;
-                        case Rarity.Uncommon:
-                            reward.damage = 10; reward.cooldown = 1;
-                            reward.description = "Strikes with lightning. Deals 10% damage, 20% chance to stun."; break;
-                        case Rarity.Rare:
-                            reward.damage = 15; reward.cooldown = 2;
-                            reward.description = "Strikes with lightning. Deals 15% damage, 30% chance to stun."; break;
-                        case Rarity.Epic:
-                            reward.damage = 20; reward.cooldown = 2;
-                            reward.description = "Strikes with lightning. Deals 20% damage, 30% chance to stun."; break;
-                        case Rarity.Legendary:
-                            reward.damage = 25; reward.cooldown = 3;
-                            reward.description = "Strikes with lightning. Deals 25% damage, 50% chance to stun."; break;
-                    }
+                    if (rarity == Rarity.Common)        { reward.damage = 5;  reward.cooldown = 1; reward.duration = 0; reward.description = "Strikes with lightning. Deals 5% damage, 20% chance to stun."; }
+                    else if (rarity == Rarity.Uncommon){ reward.damage = 10; reward.cooldown = 1; reward.duration = 0; reward.description = "Strikes with lightning. Deals 10% damage, 20% chance to stun."; }
+                    else if (rarity == Rarity.Rare)    { reward.damage = 15; reward.cooldown = 2; reward.duration = 0; reward.description = "Strikes with lightning. Deals 15% damage, 30% chance to stun."; }
+                    else if (rarity == Rarity.Epic)    { reward.damage = 20; reward.cooldown = 2; reward.duration = 0; reward.description = "Strikes with lightning. Deals 20% damage, 30% chance to stun."; }
+                    else                                { reward.damage = 25; reward.cooldown = 3; reward.duration = 0; reward.description = "Strikes with devastating lightning. Deals 25% damage, 50% chance to stun."; }
+                    break;
+                case "Entrap":
+                    if (rarity == Rarity.Common)        { reward.damage = 10; reward.cooldown = 1; reward.duration = 1; reward.description = "Roots the foe: Defense Down 10% for 1 turn."; }
+                    else if (rarity == Rarity.Uncommon){ reward.damage = 10; reward.cooldown = 1; reward.duration = 2; reward.description = "Roots the foe: Defense Down 10% for 2 turns."; }
+                    else if (rarity == Rarity.Rare)    { reward.damage = 20; reward.cooldown = 2; reward.duration = 2; reward.description = "Roots the foe: Defense Down 20% for 2 turns."; }
+                    else if (rarity == Rarity.Epic)    { reward.damage = 20; reward.cooldown = 2; reward.duration = 3; reward.description = "Roots the foe: Defense Down 20% for 3 turns."; }
+                    else                                { reward.damage = 30; reward.cooldown = 3; reward.duration = 3; reward.description = "Roots the foe: Defense Down 30% for 3 turns."; }
+                    break;
+                case "Earth Shell":
+                    if (rarity == Rarity.Common)        { reward.damage = 10; reward.cooldown = 1; reward.duration = 1; reward.description = "Shields you: Defense Up 10% for 1 turn."; }
+                    else if (rarity == Rarity.Uncommon){ reward.damage = 10; reward.cooldown = 1; reward.duration = 2; reward.description = "Shields you: Defense Up 10% for 2 turns."; }
+                    else if (rarity == Rarity.Rare)    { reward.damage = 20; reward.cooldown = 2; reward.duration = 2; reward.description = "Shields you: Defense Up 20% for 2 turns."; }
+                    else if (rarity == Rarity.Epic)    { reward.damage = 20; reward.cooldown = 2; reward.duration = 3; reward.description = "Shields you: Defense Up 20% for 3 turns."; }
+                    else                                { reward.damage = 30; reward.cooldown = 3; reward.duration = 3; reward.description = "Shields you: Defense Up 30% for 3 turns."; }
                     break;
             }
-            reward.currentCooldown = 0;
-            return reward;
-        }
 
-        string GetRarityString(Skill skill)
-        {
-            if (skill.skillName == "Spirit Pulse")
-            {
-                if (skill.damage == 2) return "Common";
-                if (skill.damage == 3) return "Uncommon";
-                if (skill.damage == 4) return "Rare";
-                if (skill.damage == 5) return "Epic";
-                if (skill.damage == 50) return "Legendary";
-            }
-            else if (skill.skillName == "Fireball")
-            {
-                if (skill.damage == 5) return "Common";
-                if (skill.damage == 10) return "Uncommon";
-                if (skill.damage == 15) return "Rare";
-                if (skill.damage == 20) return "Epic";
-                if (skill.damage == 25) return "Legendary";
-            }
-            else if (skill.skillName == "Aqua Mend")
-            {
-                if (skill.damage == 5) return "Common";
-                if (skill.damage == 10) return "Uncommon";
-                if (skill.damage == 15) return "Rare";
-                if (skill.damage == 20) return "Epic";
-                if (skill.damage == 25) return "Legendary";
-            }
-            else if (skill.skillName == "Lightning Strike")
-            {
-                if (skill.damage == 5) return "Common";
-                if (skill.damage == 10) return "Uncommon";
-                if (skill.damage == 15) return "Rare";
-                if (skill.damage == 20) return "Epic";
-                if (skill.damage == 25) return "Legendary";
-            }
-            return "";
+            return reward;
         }
 
         private Color GetRarityColor(Skill skill)
         {
-            string rarity = GetRarityString(skill);
-            switch(rarity)
+            return skill.rarity switch
             {
-                case "Common": return Color.gray;
-                case "Uncommon": return Color.green;
-                case "Rare": return Color.blue;
-                case "Epic": return new Color(0.5f, 0f, 0.5f, 1f);
-                case "Legendary": return new Color(1f, 0.5f, 0f, 1f);
-                default: return Color.white;
-            }
+                Rarity.Common    => Color.gray,
+                Rarity.Uncommon  => new Color(0f, 0.6f, 0f, 1f),
+                Rarity.Rare      => Color.blue,
+                Rarity.Epic      => new Color(0.5f, 0f, 0.5f, 1f),
+                Rarity.Legendary => new Color(1f, 0.5f, 0f, 1f),
+                _                => Color.white
+            };
         }
     }
 }
