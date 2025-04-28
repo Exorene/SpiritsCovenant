@@ -1544,7 +1544,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &582066275
 Transform:
@@ -1554,12 +1554,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 582066274}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1562815008}
+  m_Father: {fileID: 1841977224}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!199 &582066276
 ParticleSystemRenderer:
@@ -6770,7 +6770,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &692605961
 Transform:
@@ -6780,12 +6780,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 692605960}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1562815008}
+  m_Father: {fileID: 1841977224}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!199 &692605962
 ParticleSystemRenderer:
@@ -12491,7 +12491,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1110101202
 Transform:
@@ -12501,12 +12501,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1110101201}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1562815008}
+  m_Father: {fileID: 1841977224}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!199 &1110101203
 ParticleSystemRenderer:
@@ -17558,7 +17558,7 @@ MonoBehaviour:
   playerMaxHealth: 120
   enemyMaxHealth: 20
   enemyAttackDamage: 3
-  enemyScalingFactor: 1.5
+  enemyScalingFactor: 1.4
   rarityChances:
   - common: 60
     uncommon: 30
@@ -28457,13 +28457,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 1151388028547126963, guid: 15403f1811b0df945946353dd02bd4d0, type: 3}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 15403f1811b0df945946353dd02bd4d0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 692605961}
-    - targetCorrespondingSourceObject: {fileID: 1151388028547126963, guid: 15403f1811b0df945946353dd02bd4d0, type: 3}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 15403f1811b0df945946353dd02bd4d0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1110101202}
-    - targetCorrespondingSourceObject: {fileID: 1151388028547126963, guid: 15403f1811b0df945946353dd02bd4d0, type: 3}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 15403f1811b0df945946353dd02bd4d0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 582066275}
     m_AddedComponents:
