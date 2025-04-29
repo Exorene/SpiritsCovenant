@@ -286,8 +286,11 @@ namespace SpiritsCovenant
             skipRewardButton.onClick.RemoveAllListeners();
 
             rewardText1.text = $"{r1.skillName} ({r1.rarity})\n{r1.description}";
+            rewardText1.color = Color.white;
             rewardText2.text = $"{r2.skillName} ({r2.rarity})\n{r2.description}";
+            rewardText2.color = Color.white;
             rewardText3.text = $"{r3.skillName} ({r3.rarity})\n{r3.description}";
+            rewardText3.color = Color.white;
 
             rewardButton1.image.color = GetRarityColor(r1);
             rewardButton2.image.color = GetRarityColor(r2);
@@ -323,6 +326,7 @@ namespace SpiritsCovenant
                 if (i < unlockedSkills.Count)
                 {
                     replaceButtonTexts[i].text    = unlockedSkills[i].skillName;
+                    replaceButtonTexts[i].color   = Color.white;
                     replaceButtons[i].image.color = GetRarityColor(unlockedSkills[i]);
                     int btnIndex = i;
                     replaceButtons[i].onClick.RemoveAllListeners();
@@ -362,21 +366,21 @@ namespace SpiritsCovenant
             int levelIndex = Mathf.Clamp(GameData.currentLevel, 1, rarityChances.Length) - 1;
             var weights = rarityChances[levelIndex];
             int roll = Random.Range(1, 101);
-            int cum = weights.common;
-            Rarity rarity = roll <= cum
+            int cumulative = weights.common;
+            Rarity rarity = roll <= cumulative
                 ? Rarity.Common
-                : roll <= (cum += weights.uncommon)
+                : roll <= (cumulative += weights.uncommon)
                     ? Rarity.Uncommon
-                    : roll <= (cum += weights.rare)
+                    : roll <= (cumulative += weights.rare)
                         ? Rarity.Rare
-                        : roll <= (cum += weights.epic)
+                        : roll <= (cumulative += weights.epic)
                             ? Rarity.Epic
                             : Rarity.Legendary;
 
             var baseSkill = allSkills[Random.Range(0, allSkills.Length)];
             var reward = new Skill { skillName = baseSkill.skillName, rarity = rarity, currentCooldown = 0 };
 
-            switch (reward.skillName)
+             switch (reward.skillName)
             {
                 case "Spirit Pulse":
                     if (rarity == Rarity.Common)      { reward.damage = 2;  reward.cooldown = 0; reward.duration = 0; reward.description = "Deals 2 damage."; }
