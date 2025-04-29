@@ -1545,7 +1545,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &582066275
 Transform:
   m_ObjectHideFlags: 0
@@ -6766,7 +6766,7 @@ GameObject:
   - component: {fileID: 692605963}
   - component: {fileID: 692605962}
   m_Layer: 0
-  m_Name: Particle System 2
+  m_Name: FireballParticle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6879,9 +6879,9 @@ ParticleSystem:
   ringBufferMode: 0
   ringBufferLoopRange: {x: 0, y: 1}
   emitterVelocityMode: 1
-  looping: 1
+  looping: 0
   prewarm: 0
-  playOnAwake: 1
+  playOnAwake: 0
   useUnscaledTime: 0
   autoRandomSeed: 1
   startDelay:
@@ -12487,7 +12487,7 @@ GameObject:
   - component: {fileID: 1110101204}
   - component: {fileID: 1110101203}
   m_Layer: 0
-  m_Name: Particle System 3
+  m_Name: SpiritPulseParticle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12600,9 +12600,9 @@ ParticleSystem:
   ringBufferMode: 0
   ringBufferLoopRange: {x: 0, y: 1}
   emitterVelocityMode: 1
-  looping: 1
+  looping: 0
   prewarm: 0
-  playOnAwake: 1
+  playOnAwake: 0
   useUnscaledTime: 0
   autoRandomSeed: 1
   startDelay:
@@ -12668,7 +12668,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 2
+      scalar: 1.2
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -17555,6 +17555,25 @@ MonoBehaviour:
   playerHealth: {fileID: 242519715}
   enemyHealth: {fileID: 1861176619}
   battleManager: {fileID: 313545149}
+  skillParticles:
+  - skillName: Fireball
+    particlePrefab: {fileID: 692605963}
+    playOnPlayer: 1
+  - skillName: Spirit Pulse
+    particlePrefab: {fileID: 1110101204}
+    playOnPlayer: 1
+  - skillName: 
+    particlePrefab: {fileID: 0}
+    playOnPlayer: 0
+  - skillName: 
+    particlePrefab: {fileID: 0}
+    playOnPlayer: 0
+  - skillName: 
+    particlePrefab: {fileID: 0}
+    playOnPlayer: 0
+  - skillName: 
+    particlePrefab: {fileID: 0}
+    playOnPlayer: 0
   playerMaxHealth: 120
   enemyMaxHealth: 20
   enemyAttackDamage: 3
