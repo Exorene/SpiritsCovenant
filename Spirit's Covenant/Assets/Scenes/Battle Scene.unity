@@ -17558,7 +17558,7 @@ MonoBehaviour:
   playerMaxHealth: 120
   enemyMaxHealth: 20
   enemyAttackDamage: 3
-  enemyScalingFactor: 1.4
+  enemyScalingFactor: 1.3
   rarityChances:
   - common: 60
     uncommon: 30
