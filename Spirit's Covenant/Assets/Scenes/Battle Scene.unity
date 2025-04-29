@@ -17551,7 +17551,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 1841977223}
   enemy: {fileID: 1615130430}
-  bossEnemyPrefab: {fileID: 919132149155446097, guid: 02d9d037162fb8945b9a088f049fee59, type: 3}
+  bossEnemyPrefab: {fileID: 0}
   playerHealth: {fileID: 242519715}
   enemyHealth: {fileID: 1861176619}
   battleManager: {fileID: 313545149}
