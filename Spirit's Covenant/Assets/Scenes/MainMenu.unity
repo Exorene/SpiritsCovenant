@@ -1322,7 +1322,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1362527027}
         m_TargetAssemblyTypeName: GameManager_Main, Assembly-CSharp
-        m_MethodName: MapScene
+        m_MethodName: LoreScene
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

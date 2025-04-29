@@ -18,8 +18,13 @@ public class MenuControl : MonoBehaviour
         
     }
 
-    public void MapButton()
+    public void ContinueButton()
     {
         manager.MapScene();
+    }
+
+    public void QuitButton()
+    {
+        manager.MainMenu();
     }
 }

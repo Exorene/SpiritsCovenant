@@ -10,7 +10,7 @@ public class MainMenuControl : MonoBehaviour
 
     public void MapButton()
     {
-        manager.MapScene();
+        manager.LoreScene();
     }
 
     public void QuitButton()

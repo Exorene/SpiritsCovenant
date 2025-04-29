@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameManager_Main : MonoBehaviour
+public class LoreGameManager : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -28,10 +28,5 @@ public class GameManager_Main : MonoBehaviour
     public void LoseScene()
     {
         SceneManager.LoadScene("LoseScene");
-    }
-
-    public void LoreScene()
-    {
-        SceneManager.LoadScene("LoreScreen");
     }
 }
