@@ -19,6 +19,11 @@ public class MainMenuControl : MonoBehaviour
         manager.LoreScene();
     }
 
+    public void CreditsButton()
+    {
+        manager.Credits();
+    }
+
     public void QuitButton()
     {
         Application.Quit();

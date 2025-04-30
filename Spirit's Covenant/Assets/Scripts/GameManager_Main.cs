@@ -34,4 +34,9 @@ public class GameManager_Main : MonoBehaviour
     {
         SceneManager.LoadScene("LoreScreen");
     }
+
+    public void Credits()
+    {
+        SceneManager.LoadScene("Credits");
+    }
 }
