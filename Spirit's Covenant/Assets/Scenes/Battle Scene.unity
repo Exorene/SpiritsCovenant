@@ -17630,7 +17630,7 @@ MonoBehaviour:
   - skillName: Lightning Strike
     particlePrefab: {fileID: 582066277}
     playOnPlayer: 0
-    sfxClip: {fileID: 8300000, guid: 3a7f063cf934eed4aaff5196b76c8dc6, type: 3}
+    sfxClip: {fileID: 8300000, guid: ed18c8fd24a3ba24c92f7f1a30f4e993, type: 3}
   - skillName: Earth Shell
     particlePrefab: {fileID: 1318221005}
     playOnPlayer: 1
