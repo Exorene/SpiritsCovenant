@@ -3,21 +3,19 @@ using UnityEngine.SceneManagement;
 
 public class GameManager_Battle : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    // (You can remove Start/Update if you don't need them)
+    void Start() { }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    void Update() { }
 
     public void LoseScene()
     {
         SceneManager.LoadScene("LoseScene");
+    }
+
+    public void WinScene()
+    {
+        SceneManager.LoadScene("WinScene");
     }
 
     public void MapScene()
@@ -30,8 +28,9 @@ public class GameManager_Battle : MonoBehaviour
         SceneManager.LoadScene("MainMenu");
     }
 
-    //public void RewardScene();
-    //{
-        
-    //}
+    // If you later want a dedicated reward scene:
+    // public void RewardScene()
+    // {
+    //     SceneManager.LoadScene("RewardScene");
+    // }
 }

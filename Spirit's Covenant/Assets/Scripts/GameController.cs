@@ -115,9 +115,11 @@ namespace SpiritsCovenant
                     Quaternion.Euler(0f, 270f, 0f),
                     enemy.transform.parent
                 );
+                boss.tag = "Boss";
                 Destroy(enemy);
                 enemy = boss;
             }
+
             bgmSource.clip = battleMusic;
             bgmSource.loop = true;
             bgmSource.Play();
@@ -146,6 +148,7 @@ namespace SpiritsCovenant
             skillButton4.onClick.AddListener(() => OnSkillButtonClicked(3));
 
             rewardScreen.SetActive(false);
+
             if (skillReplacementPanel != null)
                 skillReplacementPanel.SetActive(false);
 
@@ -153,15 +156,31 @@ namespace SpiritsCovenant
                 Debug.LogWarning("AudioSource not assigned on GameController.");
         }
 
+
         void Update()
         {
             if (playerHealth.value <= 0)
+            {
                 battleManager.LoseScene();
-            else if (enemyHealth.value <= 0 && !rewardDisplayed)
-                ShowRewardScreen();
+                return;
+            }
+
+            if (enemyHealth.value <= 0 && !rewardDisplayed)
+            {
+                if (enemy.CompareTag("Boss"))
+                {
+                    battleManager.WinScene();
+                }
+                else
+                {
+                    ShowRewardScreen();
+                }
+                return;
+            }
 
             RefreshSkillButtons();
         }
+
 
         void OnSkillButtonClicked(int index)
         {
