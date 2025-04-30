@@ -1,7 +1,5 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEditor;
-
 public class LoreScreenControl : MonoBehaviour
 {
 

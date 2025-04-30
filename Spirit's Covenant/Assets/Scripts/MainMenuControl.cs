@@ -1,8 +1,6 @@
 using UnityEngine;
-#if UNITY_EDITOR
 using UnityEditor;
 using SpiritsCovenant;
-#endif
 
 public class MainMenuControl : MonoBehaviour
 {
@@ -27,9 +25,5 @@ public class MainMenuControl : MonoBehaviour
     public void QuitButton()
     {
         Application.Quit();
-
-        #if UNITY_EDITOR
-        EditorApplication.isPlaying = false;
-        #endif
     }
 }
