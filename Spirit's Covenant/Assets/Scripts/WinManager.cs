@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using SpiritsCovenant;  
 
 public class WinManager : MonoBehaviour
 {
@@ -17,6 +18,7 @@ public class WinManager : MonoBehaviour
 
     public void MainMenu()
     {
+        GameData.Reset();
         SceneManager.LoadScene("MainMenu");
     }
 }
