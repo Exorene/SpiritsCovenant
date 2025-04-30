@@ -17572,6 +17572,7 @@ GameObject:
   - component: {fileID: 1161294612}
   - component: {fileID: 1161294613}
   - component: {fileID: 1161294614}
+  - component: {fileID: 1161294615}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -17610,29 +17611,38 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 1841977223}
   enemy: {fileID: 1615130430}
-  bossEnemyPrefab: {fileID: 0}
+  bossEnemyPrefab: {fileID: 919132149155446097, guid: 02d9d037162fb8945b9a088f049fee59, type: 3}
   playerHealth: {fileID: 242519715}
   enemyHealth: {fileID: 1861176619}
   battleManager: {fileID: 313545149}
+  audioSource: {fileID: 1161294615}
+  bgmSource: {fileID: 1161294615}
+  battleMusic: {fileID: 8300000, guid: bc8c327710dffdf4eab0c0e24550e70a, type: 3}
   skillParticles:
   - skillName: Fireball
     particlePrefab: {fileID: 692605963}
     playOnPlayer: 1
+    sfxClip: {fileID: 8300000, guid: bbb4648a4326079458017847353aa570, type: 3}
   - skillName: Spirit Pulse
     particlePrefab: {fileID: 1110101204}
     playOnPlayer: 1
+    sfxClip: {fileID: 8300000, guid: cb814945cae4b7c4f8fc2f48e38a63fd, type: 3}
   - skillName: Lightning Strike
     particlePrefab: {fileID: 582066277}
     playOnPlayer: 0
+    sfxClip: {fileID: 8300000, guid: 3a7f063cf934eed4aaff5196b76c8dc6, type: 3}
   - skillName: Earth Shell
     particlePrefab: {fileID: 1318221005}
     playOnPlayer: 1
+    sfxClip: {fileID: 8300000, guid: 367d4380a5e9b024389c4a037345f4f4, type: 3}
   - skillName: Entrap
     particlePrefab: {fileID: 1821226995}
     playOnPlayer: 0
+    sfxClip: {fileID: 8300000, guid: d8fcd9c6fb0969049bc9ebef64cf395e, type: 3}
   - skillName: Aqua Mend
     particlePrefab: {fileID: 1918274722}
     playOnPlayer: 1
+    sfxClip: {fileID: 8300000, guid: e925516379474544a908b14aa36f79e0, type: 3}
   playerMaxHealth: 120
   enemyMaxHealth: 20
   enemyAttackDamage: 3
@@ -17778,6 +17788,103 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!82 &1161294615
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1161294611}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1164435089
 GameObject:
   m_ObjectHideFlags: 0
@@ -34051,6 +34158,51 @@ RectTransform:
   m_AnchoredPosition: {x: -2.5, y: 0}
   m_SizeDelta: {x: -5, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1723251331
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1723251332}
+  - component: {fileID: 1723251333}
+  m_Layer: 0
+  m_Name: BgmManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1723251332
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1723251331}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.5, y: 2.75, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1723251333
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1723251331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d77392e6714f5b346acb2c15f94f83f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bgmClip: {fileID: 8300000, guid: bc8c327710dffdf4eab0c0e24550e70a, type: 3}
 --- !u!1 &1776840571
 GameObject:
   m_ObjectHideFlags: 0
@@ -44553,3 +44705,4 @@ SceneRoots:
   - {fileID: 313545150}
   - {fileID: 745037079}
   - {fileID: 1161294612}
+  - {fileID: 1723251332}

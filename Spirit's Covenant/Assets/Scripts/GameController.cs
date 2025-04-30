@@ -25,28 +25,29 @@ namespace SpiritsCovenant
         public string skillName;
         public ParticleSystem particlePrefab;
         public bool playOnPlayer;
+        public AudioClip sfxClip;
     }
 
     public class GameController : MonoBehaviour
     {
-        [Header("References")]
         [SerializeField] private GameObject player;
         [SerializeField] private GameObject enemy;
         [SerializeField] private GameObject bossEnemyPrefab;
         [SerializeField] private Slider playerHealth;
         [SerializeField] private Slider enemyHealth;
         [SerializeField] private GameManager_Battle battleManager;
+        [SerializeField] private AudioSource audioSource;
+        [SerializeField] private AudioSource bgmSource;
 
-        [Header("VFX")]
+        [SerializeField] private AudioClip battleMusic;
+
         [SerializeField] private SkillParticle[] skillParticles = new SkillParticle[6];
 
-        [Header("Stats & Scaling")]
         [SerializeField] private float playerMaxHealth = 120f;
         [SerializeField] private float enemyMaxHealth = 12f;
         [SerializeField] private float enemyAttackDamage = 2f;
         [SerializeField] private float enemyScalingFactor = 1.05f;
 
-        [Header("Drop Chances by Level")]
         [SerializeField] private RarityWeight[] rarityChances = new RarityWeight[10]
         {
             new RarityWeight{ common=60, uncommon=30, rare=7,  epic=2, legendary=1 },
@@ -61,7 +62,6 @@ namespace SpiritsCovenant
             new RarityWeight{ common=15, uncommon=25, rare=25, epic=25,legendary=10}
         };
 
-        [Header("UI - Reward Screen")]
         [SerializeField] private GameObject rewardScreen;
         [SerializeField] private Button rewardButton1;
         [SerializeField] private Button rewardButton2;
@@ -71,12 +71,10 @@ namespace SpiritsCovenant
         [SerializeField] private TextMeshProUGUI rewardText3;
         [SerializeField] private Button skipRewardButton;
 
-        [Header("UI - Skill Replacement")]
         [SerializeField] private GameObject skillReplacementPanel;
         [SerializeField] private Button[] replaceButtons;
         [SerializeField] private TextMeshProUGUI[] replaceButtonTexts;
 
-        [Header("UI - Skill Buttons")]
         [SerializeField] private Button skillButton1;
         [SerializeField] private Button skillButton2;
         [SerializeField] private Button skillButton3;
@@ -104,7 +102,6 @@ namespace SpiritsCovenant
             public string description;
         }
 
-        [Header("All Possible Base Skills")]
         [SerializeField] private Skill[] allSkills;
         private List<Skill> unlockedSkills = new List<Skill>();
 
@@ -121,6 +118,9 @@ namespace SpiritsCovenant
                 Destroy(enemy);
                 enemy = boss;
             }
+            bgmSource.clip = battleMusic;
+            bgmSource.loop = true;
+            bgmSource.Play();
 
             anim = GetComponent<Animator>();
 
@@ -148,6 +148,9 @@ namespace SpiritsCovenant
             rewardScreen.SetActive(false);
             if (skillReplacementPanel != null)
                 skillReplacementPanel.SetActive(false);
+
+            if (audioSource == null)
+                Debug.LogWarning("AudioSource not assigned on GameController.");
         }
 
         void Update()
@@ -223,8 +226,8 @@ namespace SpiritsCovenant
 
             if (enemyHealth.value > 0 && !enemyStunned)
             {
-                float raw     = enemyAttackDamage * Mathf.Pow(enemyScalingFactor, GameData.currentLevel - 1);
-                float damage  = raw * (1f - playerBuffPercent);
+                float raw = enemyAttackDamage * Mathf.Pow(enemyScalingFactor, GameData.currentLevel - 1);
+                float damage = raw * (1f - playerBuffPercent);
                 playerHealth.value -= damage;
             }
 
@@ -262,7 +265,7 @@ namespace SpiritsCovenant
                         txt.color = Color.white;
                     }
                     button.interactable = unlockedSkills[i].currentCooldown <= 0;
-                    button.image.color  = GetRarityColor(unlockedSkills[i]);
+                    button.image.color = GetRarityColor(unlockedSkills[i]);
                 }
                 else
                 {
@@ -286,11 +289,8 @@ namespace SpiritsCovenant
             skipRewardButton.onClick.RemoveAllListeners();
 
             rewardText1.text = $"{r1.skillName} ({r1.rarity})\n{r1.description}";
-            rewardText1.color = Color.white;
             rewardText2.text = $"{r2.skillName} ({r2.rarity})\n{r2.description}";
-            rewardText2.color = Color.white;
             rewardText3.text = $"{r3.skillName} ({r3.rarity})\n{r3.description}";
-            rewardText3.color = Color.white;
 
             rewardButton1.image.color = GetRarityColor(r1);
             rewardButton2.image.color = GetRarityColor(r2);
@@ -325,8 +325,7 @@ namespace SpiritsCovenant
                 replaceButtons[i].gameObject.SetActive(true);
                 if (i < unlockedSkills.Count)
                 {
-                    replaceButtonTexts[i].text    = unlockedSkills[i].skillName;
-                    replaceButtonTexts[i].color   = Color.white;
+                    replaceButtonTexts[i].text = unlockedSkills[i].skillName;
                     replaceButtons[i].image.color = GetRarityColor(unlockedSkills[i]);
                     int btnIndex = i;
                     replaceButtons[i].onClick.RemoveAllListeners();
@@ -380,7 +379,7 @@ namespace SpiritsCovenant
             var baseSkill = allSkills[Random.Range(0, allSkills.Length)];
             var reward = new Skill { skillName = baseSkill.skillName, rarity = rarity, currentCooldown = 0 };
 
-             switch (reward.skillName)
+            switch (reward.skillName)
             {
                 case "Spirit Pulse":
                     if (rarity == Rarity.Common)      { reward.damage = 2;  reward.cooldown = 0; reward.duration = 0; reward.description = "Deals 2 damage."; }
@@ -446,14 +445,20 @@ namespace SpiritsCovenant
         {
             foreach (var entry in skillParticles)
             {
-                if (entry.skillName == skillName && entry.particlePrefab != null)
+                if (entry.skillName != skillName) continue;
+
+                if (entry.particlePrefab != null)
                 {
                     Transform spawnPoint = entry.playOnPlayer ? player.transform : enemy.transform;
-                    ParticleSystem instance = Instantiate(entry.particlePrefab, spawnPoint.position, Quaternion.identity);
-                    instance.Play();
-                    Destroy(instance.gameObject, instance.main.duration + instance.main.startLifetime.constantMax);
-                    return;
+                    ParticleSystem ps = Instantiate(entry.particlePrefab, spawnPoint.position, Quaternion.identity);
+                    ps.Play();
+                    Destroy(ps.gameObject, ps.main.duration + ps.main.startLifetime.constantMax);
                 }
+
+                if (audioSource != null && entry.sfxClip != null)
+                    audioSource.PlayOneShot(entry.sfxClip);
+
+                return;
             }
         }
     }
