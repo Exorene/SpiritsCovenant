@@ -320,7 +320,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.0019684, y: -0.00091553}
+  m_AnchoredPosition: {x: 0, y: -16}
   m_SizeDelta: {x: 1920, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1197956481
@@ -760,8 +760,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.000061035, y: -50.5}
-  m_SizeDelta: {x: 1920, y: 979}
+  m_AnchoredPosition: {x: 0, y: -0.000020981}
+  m_SizeDelta: {x: 1678.8787, y: 898.6261}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1965907656
 MonoBehaviour:
@@ -786,9 +786,30 @@ MonoBehaviour:
   m_text: 'Title Font by https://linktr.ee/doublegum
 
     Main Menu Image generated
-    in Adobe Express https://new.express.adobe.com/
+    in Adobe Express
 
-'
+    https://new.express.adobe.com/
+
+
+    SFX and music:
+
+    Fireball:
+    https://pixabay.com/users/alice_soundz-44907632/
+
+    Earth Shell: https://opengameart.org/users/leohpaz
+
+    Lightning
+    Strike: https://pixabay.com/users/lordsonny-38439655/
+
+    Spirit Pulse: https://pixabay.com/users/freesound_community-46691455/
+
+    Aqua
+    Mend: https://leohpaz.itch.io/
+
+    Entangle: https://opengameart.org/users/leohpaz
+
+    Battle
+    Soundtrack: Sara Garrad (sonatina.itch.io)'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -815,15 +836,15 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 68
-  m_fontSizeBase: 68
+  m_fontSize: 48
+  m_fontSizeBase: 48
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -853,7 +874,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 58.734497, y: 0, z: 3.0915527, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
